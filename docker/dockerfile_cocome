@@ -3,7 +3,7 @@
 
 FROM ubuntu:16.04
 
-MAINTAINER Niko Benkler and Tobias Haßberg
+MAINTAINER Niko Benkler
 
 #install software property managemnet
 RUN apt-get update && \
@@ -30,10 +30,8 @@ RUN apt-get update
 RUN apt-get install -y git python-virtualenv
 
 #clone git project from url
-RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-docker.git usr/src/
+RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-and-webshop-docker-compose.git usr/src
 
-#path set so startdomain.sh is less complicatet #not possible -> passwordfile has to be created
-#ENV PATH /usr/src/glassfish/glassfish4/glassfish/bin:$PATH
 
 #dos2unix converts windowsformat line endings to unixformat as git sometimes changes them to windowsFormat
 RUN apt-get update && apt-get install -y dos2unix
@@ -61,10 +59,11 @@ ADD web8048.war   \
 
 RUN rm usr/src/*.md  && \
 	rm -r usr/src/docker && \
-	rm usr/src/glassfish/README.md
+	
 
 # 8048 (administration), 8080 (HTTP listener), 8181 (HTTPS listener)
-EXPOSE 8048 8080 8081 8148 8180 8181 8248 8280 8281 8348 8380 8381 8448 8480 8481
+#EXPOSE 8048 8080 8081 8148 8180 8181 8248 8280 8281 8348 8380 8381 8448 8480 8481
+EXPOSE 8080 8180 8280 8380 8480
 
 CMD ["/startdomainCocome.sh"]
 

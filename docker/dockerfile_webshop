@@ -3,7 +3,7 @@
 
 FROM ubuntu:16.04
 
-MAINTAINER Niko Benkler and Tobias Haßberg
+MAINTAINER Niko Benkler
 
 #install software property managemnet
 RUN apt-get update && \
@@ -53,7 +53,7 @@ ADD cocomepickup8548.war /usr/src/
 
 RUN rm usr/src/*.md  && \
 	rm -r usr/src/docker && \
-	rm usr/src/glassfish/README.md
+	
 
 # 8548 (administration), 8580 (HTTP listener), 8581 (HTTPS listener)
 EXPOSE  8548 8580 8581

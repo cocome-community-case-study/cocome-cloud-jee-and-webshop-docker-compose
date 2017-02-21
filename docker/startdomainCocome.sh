@@ -19,6 +19,7 @@ else
 	echo '##########creating and starting domains'
 fi
 
+#add new localhost name "cocome" within container 
 echo "127.0.0.1		cocome" >> /etc/hosts
 
 #The "echos" are visible via "docker logs IMAGEID" after using docker run
