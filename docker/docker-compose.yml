@@ -1,0 +1,36 @@
+version: '2'
+services:
+  cocome:
+    build:
+      context: .
+      dockerfile: dockerfile_cocome
+    ports: 
+      - "8080:8080"
+      - "8048:8048"
+      - "8148:8148"
+      - "8248:8248"
+      - "8348:8348"
+      - "8380:8380"
+      - "8448:8448"
+
+    expose:
+      - "8280"
+      - "8380"
+      - "8480"
+
+
+
+
+  webshop:
+    build:
+      context: .
+      dockerfile: dockerfile_webshop
+    ports: 
+      - "8580:8580"
+      - "8548:8548"
+    depends_on:
+      - cocome
+    links: 
+      - cocome
+  
+    
