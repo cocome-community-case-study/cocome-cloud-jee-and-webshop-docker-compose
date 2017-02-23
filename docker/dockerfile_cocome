@@ -27,7 +27,11 @@ ENV MD5=4e7ce65489347960e9797d2161e0ada2 \
 RUN apt-get update
 
 #Install git
+# -y answers interactive questions with 'YES'
 RUN apt-get install -y git python-virtualenv
+
+#Install iptables
+RUN apt-get install -y iptables
 
 #clone git project from url
 RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-and-webshop-docker-compose.git usr/src
@@ -56,14 +60,14 @@ ADD web8048.war   \
 	registry8448.war /usr/src/ 
          
 
-
-RUN rm usr/src/*.md  && \
-	rm -r usr/src/docker && \
+####Needs to get fixed!
+###RUN rm usr/src/*.md  && \
+	####rm -r usr/src/docker && \
 	
 
 # 8048 (administration), 8080 (HTTP listener), 8181 (HTTPS listener)
 #EXPOSE 8048 8080 8081 8148 8180 8181 8248 8280 8281 8348 8380 8381 8448 8480 8481
-EXPOSE 8080 8180 8280 8380 8480
+#EXPOSE 8080 8180 8280 8380 8480
 
 CMD ["/startdomainCocome.sh"]
 

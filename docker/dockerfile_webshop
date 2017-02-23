@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y dos2unix
 ADD startdomainWebshop.sh /startdomainWebshop.sh 
 ADD stopdomainWebshop.sh /stopdomainWebshop.sh  
 ADD restartWebshop.sh /restartWebshop.sh
+ADD waitForCocome.sh /waitForCocome.sh
 
 #changeFromat and uninstall dos2unix
 RUN dos2unix /startdomainWebshop.sh && \
@@ -50,14 +51,14 @@ RUN chmod +x /*.sh
 
 ADD cocomepickup8548.war /usr/src/ 
 
-
-RUN rm usr/src/*.md  && \
-	rm -r usr/src/docker && \
+###Needs to get  fixed
+###RUN rm usr/src/*.md  && \
+	###rm -r usr/src/docker && \
 	
 
 # 8548 (administration), 8580 (HTTP listener), 8581 (HTTPS listener)
-EXPOSE  8548 8580 8581
+#EXPOSE  8548 8580 8581
 
-CMD ["/startdomainWebshop.sh"]
+CMD ["/waitForCocome.sh"]
 
 

@@ -19,8 +19,7 @@ else
 	echo '##########creating and starting domains'
 fi
 
-#add new localhost name "cocome" within container 
-echo "127.0.0.1		cocome" >> /etc/hosts
+
 
 #The "echos" are visible via "docker logs IMAGEID" after using docker run
 #You get the imageID of the running container  with 'docker ps'  or the id of all containers via 'docker ps -a'
@@ -154,6 +153,15 @@ echo '########## restart domain ENTERPRISE ##################'
 echo '########## restart domain STORE ##################'
 /usr/src/glassfish/glassfish4/glassfish/bin/asadmin stop-domain store
 /usr/src/glassfish/glassfish4/glassfish/bin/asadmin start-domain  store
+
+
+#port redirection! 
+# this demonstrates that cocome is up an running
+# 8423 is just a random port but matches with the startDomainCoCoME
+#iptables -t nat -I PREROUTING -p tcp --dport 8423 -j REDIRECT --to-ports 8248
+#iptables -t nat -I OUTPUT -p tcp -o lo --dport 8423 -j REDIRECT --to-ports 8248
+netcat -l -p 8424
+
 
 echo '########## restart domain WEB ##################'
 /usr/src/glassfish/glassfish4/glassfish/bin/asadmin stop-domain web
