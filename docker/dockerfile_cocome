@@ -30,8 +30,6 @@ RUN apt-get update
 # -y answers interactive questions with 'YES'
 RUN apt-get install -y git python-virtualenv
 
-#Install iptables
-RUN apt-get install -y iptables
 
 #clone git project from url
 RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-and-webshop-docker-compose.git usr/src
@@ -69,6 +67,6 @@ ADD web8048.war   \
 #EXPOSE 8048 8080 8081 8148 8180 8181 8248 8280 8281 8348 8380 8381 8448 8480 8481
 #EXPOSE 8080 8180 8280 8380 8480
 
-CMD ["/startdomainCocome.sh"]
+CMD ["./startdomainCocome.sh"]
 
 

@@ -38,7 +38,6 @@ RUN apt-get update && apt-get install -y dos2unix
 ADD startdomainWebshop.sh /startdomainWebshop.sh 
 ADD stopdomainWebshop.sh /stopdomainWebshop.sh  
 ADD restartWebshop.sh /restartWebshop.sh
-ADD waitForCocome.sh /waitForCocome.sh
 
 #changeFromat and uninstall dos2unix
 RUN dos2unix /startdomainWebshop.sh && \
@@ -59,6 +58,6 @@ ADD cocomepickup8548.war /usr/src/
 # 8548 (administration), 8580 (HTTP listener), 8581 (HTTPS listener)
 #EXPOSE  8548 8580 8581
 
-CMD ["/waitForCocome.sh"]
+CMD ["./startdomainWebshop.sh"]
 
 

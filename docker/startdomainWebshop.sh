@@ -17,6 +17,8 @@ else
 fi
 
 
+
+
 #The "echos" are visible via "docker logs IMAGEID" after using docker run
 #You get the imageID of the running container  with 'docker ps'  or the id of all containers via 'docker ps -a'
 #Touch creates two new files
@@ -55,6 +57,21 @@ echo "AS_ADMIN_PASSWORD=${PASSWORD}" >> /usr/src/glassfish/glassfish4/glassfish/
 echo '######### Deploy cocome_pickup8548.war #########'
 /usr/src/glassfish/glassfish4/glassfish/bin/asadmin --user admin --passwordfile /usr/src/glassfish/glassfish4/glassfish/passwordfile --port $COCOME_PICKUP_PORT deploy --force --name PICKUPSHOP /usr/src/cocomepickup8548.war
 
+###############################################################################
+
+# Before we restart the domain and finally run the webshop, we need
+# to wait for cocome to be ready, as the webshop requires a running instance
+echo "Wait for Cocome to start!"
+#8424 will be redirected to a running glassfish port as soon as cocome is running
+#8424 is just a random pick!
+while ! netcat -z cocome 8424; do   
+  sleep 5.0 
+   
+  echo "Cocome is not running yet"
+done
+
+echo "CoCoME is running!"
+
 
 ##############################################################################
 #restart needed because of changed attributes like password
@@ -66,10 +83,7 @@ echo '########## restart domain cocome-pickup ##################'
 /usr/src/glassfish/glassfish4/glassfish/bin/asadmin start-domain -v cocome-pickup
 
 
-
-echo '####### test ######'
-# Last command was "-v" -> glassfish in verbose-mode -> registry-domain logs are printed out on console
-#->  docker does not stop the container
+# Last command was "-v" -> glassfish in verbose-mode -> docker container doesn't stop!
 # IMPORTANT:  No command will be executed after this Point!
 
 

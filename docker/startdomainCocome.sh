@@ -155,11 +155,9 @@ echo '########## restart domain STORE ##################'
 /usr/src/glassfish/glassfish4/glassfish/bin/asadmin start-domain  store
 
 
-#port redirection! 
+
 # this demonstrates that cocome is up an running
-# 8423 is just a random port but matches with the startDomainCoCoME
-#iptables -t nat -I PREROUTING -p tcp --dport 8423 -j REDIRECT --to-ports 8248
-#iptables -t nat -I OUTPUT -p tcp -o lo --dport 8423 -j REDIRECT --to-ports 8248
+
 netcat -l -p 8424
 
 
