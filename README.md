@@ -1,5 +1,14 @@
-This project is about developing a dockerfile, which, in a first step creates an docker image with basic functionality. In a second step, while running that image, it installs the latest version of the cocome project onto an container and makes it runable. This gives the option to try out cocome on each computer, with docker installed, without having to proceed the installation of cocome.
+This Project is about bringing together CoCoME and the Webshop-Project with Docker Compose. In a first step, it creates two containers. One's containing CoCoME as a single project which can be used seperately. The other is containing the Webshop, which needs a running instance of CoCoME. This is the part where docker compose comes into play: It links both containers, allowing them to communicate without any additional work for the user. This leads to the basic aim: Those containers can be multiplied and hosted on different machines for performance reasons. Solely the docker-compose file needs to be adjusted regarding the host adresses.
 
+# Important: Without-Mvn-Version
+This project-branch does not automatically build the newest version of CoCoME to reduce building time. As a fully new build takes about an hour, we decided not to pull the newest CoCoME (The version we are using is dated to the 23.February 2017). In the future, there will be another project which will download and build the newest CoCoMe and webshop.
+
+# Preamble
+The first thing we had to do was to adjust the mvn settings of both, CoCoME and the webshop. We changed the hosts in the CoCoME settings to ```cocome```. The reason for this is very simple: Docker routes the webshop demands to the CoCoME container which, in return, sends back the host name used in the settings. In case we use ```localhost```, the webshop would try to connect to (for example) the enterprise server by using ```localhost:EnterprisePort```. Unfortunately, docker does not route this request to the CoCoME container but to the webshop's localhost. Using ```cocome``` instead of ```localhost``` solves the problem, as docker now routes each requests to the CoCoME container ( ```links:cocome``` within the docker-compose file does the job here).
+So for the future: Whenever this docker-compose file is used, the CoCoME and the Webshop settings.xml need to be adjusted. (The webshop can still be deployed on localhost for now). Both settings.xml.templates are on [GitHub](https://github.com/cocome-community-case-study/cocome-cloud-jee-and-webshop-docker-compose.git).
+
+The most diffucult part was the starting order: The Webshop needs a running instance of CoCoME, as it needs the registry to register itself. Therefore, we had to tell the webshop container to create, start and the deploy the shop but to wait with a restart until CoCoME is up and running completely. As a solution, we used some TCP-Tools to ask the CoCoME container if it's ready. Furthermore, the authentication provider (Webshop) had to be updated as it has to match the new host adresses of cocome  ```cocome:PORT``` instead of ```localhost:PORT```. In the future, the authentication provider has to be updated during build time (mvn build) and moved to the location within its glassfish domain. More precisely: the authentification provider is the hub for the communication between webshop and CoCoME.
+Remember: You need to run mvn compile, 2x package, 1x build(goal: clean compile package) when changing the settings as the "wsdl's" get generated in the first step, the stub's in the second step by using the wsdl's.
 
 # Prerequisites
 ### Docker installation
@@ -7,46 +16,49 @@ This project is about developing a dockerfile, which, in a first step creates an
 - As a Windows user, install a VM on your PC and the latest version of Ubuntu. Then proceed with the linux-installation.
 - It has not been tested on Mac so far.
 
-### Download the Dockerfile
-- Download the folder 'docker' from the [git repo](https://github.com/cocome-community-case-study/cocome-cloud-jee-docker.git)
+### Docker-compose installation
+- install docker-compose on your linux system. Use this [guide](https://docs.docker.com/compose/install/) for the installation. 
+- Check your installation with: ```docker-compose version``` (Terminal)
+- it has not been tested on Mac and Windows so far.
+
+### Download the docker-compose file, dockerfiles and cocome
+- Important: Do not download from the master-branch it does not contain the "Without-Mvn-Version".
+- Change to branch: ```docker-compose-without-maven```
+- Download the folder 'docker' from the [git repo](https://github.com/cocome-community-case-study/cocome-cloud-jee-and-webshop-docker-compose.git)
 
 # Build and run the image
-Open the terminal within the downloaded 'docker'-folder. When executing docker build, you always need do open the console within the folder that contains the dockerfile.
-### Docker build
-- use follwing command:  ```docker build -t someName .```
-- you can exchange 'someName' to whatever you want. This will be the image name. Very important: do not forget the fullstop after the name.
-- it takes some time when executed the first time as it needs to dowload ubuntu, java, glassfish a some other files.
-- You need to rebuild the image to get a new version of CoCoME
-- check if the image was created successfully by using the command *docker images*. The image name should appear under REPOSITORY.
+Open the terminal within the downloaded 'docker'-folder. You will see some scripts (which deploy, start, restart, stop CoCoME and the Webshop), the dockerfile for the Webshop, the dockerfile for CoCoME, some .war, .jar -files (this is the ```without-mvn workaround```) and most important: the docker-compose file.
+When executing docker build, you always need do open the console within the folder that contains the dockerfile.
+### Docker-compose build
+- use follwing commands:  ```docker-compose build``` (This takes a few minutes as it downloads all the stuff our docker container needs. The second, third,... time will be faster).
 
-### Docker run
-- use ```docker run -d -p 8080:8080 someName``` to run the image.
-- it takes some time to start each glassfish domain, execute maven to deploy CoCoME on the domains(around 30 to 45 minutes).
-- Use the docker logs to get information about the progress. Therefore use the command ```docker ps``` to identify the containerID, then execute ```docker logs containerID -f``` with the actual containerID. (You can exit the log-view with Ctrl-C). You will notice that each domain will get started, stoped and restart. After that, you should be able to access the CoCoME UI via your [browser](http://localhost:8080/cloud-web-frontend/)
+### Docker-compose up
+- use ```docker-compose up``` to run the image.(Remember, terminal needs to be opened within the folder with the compose file!)
+- use ```docker-compose up --force-recreate``` if you want a new image. (```docker-compose up``` uses the cache and restarts the containers even if removed with docker-compose rm)
+- the terminal will show all the log details.
+- Use the docker logs to get information about a specific container. Therefore use the command ```docker ps``` to identify the containerID, then execute ```docker logs containerID -f``` with the actual containerID. (You can exit the log-view with Ctrl-C). You will notice that each domain will get started, stoped and restart. 
 
-### Docker run full access
-- If you need full access to each glassfish domain use the command ```docker run -d -p 8048:8048 -p 8080:8080 -p 8148:8148 -p 8180:8180 -p 8248:8248 -p 8280:8280 -p 8348:8348 -p 8380:8380  -p 8448:8448 -p 8480:8480 someName```
+### Access the web interface
+- Acces the CoCoME UI via your [browser](http://localhost:8080/cloud-web-frontend/)
+- Acess the Webshop via your [browser](http://localhost:8580/cloud-pickup-shop/)
+Important notice: localhost may vary on your system. This depends on you docker and operating system settings concerning local traffic.
 
 ### Deleting images and container
 - If you want to delete all containers use ```docker rm -f $(docker ps -a -q)```
 - To delete all images use ```docker rmi -f $(docker images -q)```
+Important notice: ```docker-compose rm``` does not remove the images completely. Therefore, delete the containers with the command mentioned above.
 
 ### Troubleshooting
  - Nothing added yet
 
 # Stop and start a container
 ###Stopping
-- run from a bash session within the container: ```docker exec -it containerID /bin/bash``` then just type in: ```./stopdomain.sh``` OR
-- use the command ```docker exec containerID ./stopdomain.sh``` 
-  -> both commands stop the glassfish domains which leads to a docker stop, as no application is running
+-run ```docker-compose stop``` within your docker folder. This will force-stop both containers.
 ### Starting
-- use ```docker ps -a``` to get the containerID of the stopped container, then execute ```docker start containerID```
+- use ```docker-compose start``` 
 
-# Logfiles (glassfish)
-- As docker hides its image/container data, we need to access the glassfish logfiles via the web browser. Therefore the admin ports have to be exposed. This needs the docker run full access command (see above).
-- access the glassfish admin console with: https://localhost:8x48 (the x needs to be replaced)
-- 8048: web-domain, 8148: store-domain, 8248: adapter-domain, 8348: enterprise-domain, 8448: registry-domain
-- choose *server (Admin server)* > *View Log Files* or *View Raw Log*
+--------------------------------------------------------------------------------------------------------------------------------------
+###This Part is not overwrought yet!!!!###
 
 
 # Implementation details & reasons
