@@ -14,7 +14,6 @@ services:
       dockerfile: dockerfile_webshop
     ports: 
       - "8580:8580"
-      - "8548:8548"
     depends_on:
       - cocome
     links: 
