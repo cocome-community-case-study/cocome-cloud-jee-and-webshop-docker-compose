@@ -1,0 +1,63 @@
+
+
+
+FROM ubuntu:16.04
+
+MAINTAINER Niko Benkler
+
+# Set environment variables
+ENV MD5=4e7ce65489347960e9797d2161e0ada2 \
+    JAVA_HOME=/usr/lib/jvm/java-8-oracle \
+    PASSWORD=password
+
+#install software property managemnet
+RUN apt-get update && \
+    apt-get install -y software-properties-common python-software-properties unzip yum ant sed vim netcat-openbsd
+
+# Install Java, Git, Netcat, Maven
+RUN \
+    apt-get update && \
+    apt-get install -y software-properties-common && \
+    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set selections && \
+    add-apt-repository -y ppa:webupd8team/java && \
+    apt-get update && \
+    apt-get install -y oracle-java8-installer python-software-properties unzip ant git python-virtualenv maven && \
+    apt-get install -y software-properties-common python-software-properties unzip yum ant sed vim netcat-openbsd && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/oracle-jdk8-installer
+
+
+
+#clone git project from url
+RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-docker.git usr/src/
+
+#Add settings.xml
+ADD CoCoMEsettings.xml /usr/src/WebShopsettings.xml
+
+#dos2unix converts windowsformat line endings to unixformat as git sometimes changes them to windowsFormat
+RUN apt-get update && apt-get install -y dos2unix
+ADD startdomainWebshop.sh /startdomainWebshop.sh 
+ADD stopdomainWebshop.sh /stopdomainWebshop.sh  
+ADD restartWebshop.sh /restartWebshop.sh
+
+#changeFromat and uninstall dos2unix
+RUN dos2unix /startdomainWebshop.sh && \
+    dos2unix /restartWebshop.sh && \
+    dos2unix /stopdomainWebshop.sh && apt-get --purge remove -y dos2unix && rm -rf /var/lib/apt/lists/
+
+#Make the scripts executable 
+RUN chmod +x /*.sh
+
+
+
+
+
+	
+
+# 8548 (administration), 8580 (HTTP listener), 8581 (HTTPS listener)
+# out commented as we only need those ports for maintenance service
+#EXPOSE  8548 8580 8581
+
+CMD ["./startdomainWebshop.sh"]
+
+

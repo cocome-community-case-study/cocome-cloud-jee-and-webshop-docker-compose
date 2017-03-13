@@ -1,0 +1,93 @@
+#!/bin/bash
+
+set -e
+#DefaultAdminPorts
+
+COCOME_PICKUP_PORT=8548
+PASSWORDFILE=/usr/src/glassfish/glassfish4/glassfish/passwordfile
+
+# this if statement checks weather we only need to start the domains or set/change passwordfiles and to all the stuff below
+if [ -f "$PASSWORDFILE" ]
+then
+	echo '##########Starting already created domains##########'
+        ./restartWebshop.sh
+        exit 0
+else
+	echo '##########creating and starting domains'
+fi
+
+
+
+
+#The "echos" are visible via "docker logs IMAGEID" after using docker run
+#You get the imageID of the running container  with 'docker ps'  or the id of all containers via 'docker ps -a'
+#Touch creates two new files
+touch /usr/src/glassfish/glassfish4/glassfish/passwordfileToChange
+touch /usr/src/glassfish/glassfish4/glassfish/passwordfile
+
+#Create File to change password (this is a work-around, as we use existing domains!)
+echo "AS_ADMIN_PASSWORD=" > /usr/src/glassfish/glassfish4/glassfish/passwordfileToChange
+echo "AS_ADMIN_NEWPASSWORD=${PASSWORD}" >> /usr/src/glassfish/glassfish4/glassfish/passwordfileToChange
+
+#Create password file 
+echo "AS_ADMIN_PASSWORD=${PASSWORD}" >> /usr/src/glassfish/glassfish4/glassfish/passwordfile
+
+############################################################################
+
+#Change password of COCOME-PICKUP domain (necessarry for remote access to admin console 
+/usr/src/glassfish/glassfish4/glassfish/bin/asadmin --user admin --passwordfile /usr/src/glassfish/glassfish4/glassfish/passwordfileToChange change-admin-password --domain_name cocome-pickup
+
+############################################################################
+
+#start cocome-pickup domain
+/usr/src/glassfish/glassfish4/glassfish/bin/asadmin --user admin --passwordfile /usr/src/glassfish/glassfish4/glassfish/passwordfile start-domain cocome-pickup
+##############################################################################
+
+
+#ENABLE remote access to admin console COCOME-PICKUP domain
+/usr/src/glassfish/glassfish4/glassfish/bin/asadmin --user admin --passwordfile /usr/src/glassfish/glassfish4/glassfish/passwordfile --port $COCOME_PICKUP_PORT enable-secure-admin
+
+#############################################################################
+
+git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-web-shop.git usr/src/webshop
+
+cd /usr/src/webshop/cocome-shop-project && mvn -s /usr/src/CoCoMEsettings.xml -T 1C clean compile package 
+
+cd /usr/src/webshop/cocome-shop-project && mvn -s /usr/src/CoCoMEsettings.xml -T 1C package 
+
+cd /usr/src/webshop/cocome-shop-project && mvn -s /usr/src/CoCoMEsettings.xml -T 1C install -DskipTests
+
+###############################################################################
+
+# Before we restart the domain and finally run the webshop, we need
+# to wait for cocome to be ready, as the webshop requires a running instance
+echo "Wait for Cocome to start!"
+#8424 will be redirected to a running glassfish port as soon as cocome is running
+#8424 is just a random pick!
+while ! netcat -z cocome 8424; do   
+  sleep 5.0 
+   
+  echo "Cocome is not running yet"
+done
+
+echo "CoCoME is running!"
+
+
+##############################################################################
+#restart needed because of changed attributes like password
+#Important notice: restart of the glassfish domains or start in general has to take playce in this order!
+
+
+echo '########## restart domain cocome-pickup ##################'
+/usr/src/glassfish/glassfish4/glassfish/bin/asadmin stop-domain cocome-pickup
+/usr/src/glassfish/glassfish4/glassfish/bin/asadmin start-domain -v cocome-pickup
+
+
+# Last command was "-v" -> glassfish in verbose-mode -> docker container doesn't stop!
+# IMPORTANT:  No command will be executed after this Point!
+
+
+
+
+
+
