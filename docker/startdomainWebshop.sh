@@ -51,11 +51,13 @@ echo "AS_ADMIN_PASSWORD=${PASSWORD}" >> /usr/src/glassfish/glassfish4/glassfish/
 
 git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-web-shop.git usr/src/webshop
 
-cd /usr/src/webshop/cocome-shop-project && mvn -s /usr/src/CoCoMEsettings.xml -T 1C clean compile package 
+cd /usr/src/webshop/cocome-shop-project && mvn -s /usr/src/WebShopsettings.xml -T 1C install -DskipTests 
 
-cd /usr/src/webshop/cocome-shop-project && mvn -s /usr/src/CoCoMEsettings.xml -T 1C package 
+######MOVE AUTH Provider MISSING######
 
-cd /usr/src/webshop/cocome-shop-project && mvn -s /usr/src/CoCoMEsettings.xml -T 1C install -DskipTests
+cd /usr/src/webshop/cocome-shop-project && mvn -s /usr/src/WebShopsettings.xml -T 1C clean post-clean install -DskipTests 
+
+
 
 ###############################################################################
 
