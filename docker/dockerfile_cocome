@@ -58,12 +58,12 @@ ADD web8048.war   \
 	registry8448.war /usr/src/ 
          
 
-####Needs to get fixed!
-###RUN rm usr/src/*.md  && \
-	####rm -r usr/src/docker && \
+RUN rm usr/src/*.md  && \
+	rm -r usr/src/docker && \
 	
 
 # 8048 (administration), 8080 (HTTP listener), 8181 (HTTPS listener)
+# out commented as we only need them to be open when we need access to the servers for maintenance.
 #EXPOSE 8048 8080 8081 8148 8180 8181 8248 8280 8281 8348 8380 8381 8448 8480 8481
 #EXPOSE 8080 8180 8280 8380 8480
 
