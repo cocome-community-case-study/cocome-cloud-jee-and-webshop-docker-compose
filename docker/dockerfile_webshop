@@ -16,20 +16,21 @@ RUN apt-get update && \
 
 # Install Java, Git, Netcat, Maven
 RUN \
-    apt-get update && \
-    apt-get install -y software-properties-common && \
-    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set selections && \
-    add-apt-repository -y ppa:webupd8team/java && \
-    apt-get update && \
-    apt-get install -y oracle-java8-installer python-software-properties unzip ant git python-virtualenv maven && \
-    apt-get install -y software-properties-common python-software-properties unzip yum ant sed vim netcat-openbsd && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/cache/oracle-jdk8-installer
+	apt-get update &&\
+	apt-get install -y software-properties-common && \
+	add-apt-repository -y ppa:webupd8team/java && \
+	echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
+	apt-get update &&\
+	apt-get install -y oracle-java8-installer python-software-properties unzip ant git python-virtualenv maven && \
+        apt-get install -y software-properties-common python-software-properties unzip yum ant sed vim netcat-openbsd && \
+	rm -rf /var/lib/apt/lists/* && \
+	rm -rf /var/cache/oracle-jdk8-installer
 
-
-
+ 
 #clone git project from url
-RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-docker.git usr/src/
+RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-and-webshop-docker-compose.git usr/src && \
+    rm usr/src/*.md  && \
+    rm -r usr/src/docker
 
 #Add settings.xml
 ADD CoCoMEsettings.xml /usr/src/WebShopsettings.xml
