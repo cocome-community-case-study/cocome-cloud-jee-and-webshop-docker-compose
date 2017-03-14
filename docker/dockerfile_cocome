@@ -1,0 +1,72 @@
+
+
+
+FROM ubuntu:16.04
+
+MAINTAINER Niko Benkler
+
+#install software property managemnet
+RUN apt-get update && \
+    apt-get install -y software-properties-common python-software-properties unzip yum ant sed vim netcat-openbsd
+
+# Install Java.
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
+    add-apt-repository -y ppa:webupd8team/java && \
+    apt-get update && \
+    apt-get install -y oracle-java8-installer && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/oracle-jdk8-installer
+
+# Set environment variables
+ENV MD5=4e7ce65489347960e9797d2161e0ada2 \
+    JAVA_HOME=/usr/lib/jvm/java-8-oracle \
+    PASSWORD=password
+
+   
+# update aptitude
+RUN apt-get update
+
+#Install git
+# -y answers interactive questions with 'YES'
+RUN apt-get install -y git python-virtualenv
+
+
+#clone git project from url
+RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-and-webshop-docker-compose.git usr/src
+
+
+#dos2unix converts windowsformat line endings to unixformat as git sometimes changes them to windowsFormat
+RUN apt-get update && apt-get install -y dos2unix
+ADD startdomainCocome.sh /startdomainCocome.sh 
+ADD stopdomainCocome.sh /stopdomainCocome.sh  
+ADD restartCocome.sh /restartCocome.sh
+
+#changeFromat and uninstall dos2unix
+RUN dos2unix /startdomainCocome.sh && \
+    dos2unix /restartCocome.sh && \
+    dos2unix /stopdomainCocome.sh && apt-get --purge remove -y dos2unix && rm -rf /var/lib/apt/lists/
+
+#Make the scripts executable 
+RUN chmod +x /*.sh
+
+
+
+ADD web8048.war   \
+ 	store8148.ear   \
+ 	adapter8248.ear  \
+ 	enterprise8348.ear   \
+	registry8448.war /usr/src/ 
+         
+
+RUN rm usr/src/*.md  && \
+	rm -r usr/src/docker && \
+	
+
+# 8048 (administration), 8080 (HTTP listener), 8181 (HTTPS listener)
+# out commented as we only need them to be open when we need access to the servers for maintenance.
+#EXPOSE 8048 8080 8081 8148 8180 8181 8248 8280 8281 8348 8380 8381 8448 8480 8481
+#EXPOSE 8080 8180 8280 8380 8480
+
+CMD ["./startdomainCocome.sh"]
+
+
