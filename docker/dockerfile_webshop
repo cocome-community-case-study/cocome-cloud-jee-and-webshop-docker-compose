@@ -30,7 +30,7 @@ RUN apt-get update
 RUN apt-get install -y git python-virtualenv
 
 #clone git project from url
-RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-docker.git usr/src/
+RUN git clone https://github.com/cocome-community-case-study/cocome-cloud-jee-and-webshop-docker-compose.git usr/src
 
 
 #dos2unix converts windowsformat line endings to unixformat as git sometimes changes them to windowsFormat

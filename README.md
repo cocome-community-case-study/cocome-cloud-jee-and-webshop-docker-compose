@@ -53,7 +53,7 @@ Important notice: ```docker-compose rm``` does not remove the images completely.
 
 # Stop and start a container
 ###Stopping
--run ```docker-compose stop``` within your docker folder. This will force-stop both containers.
+- run ```docker-compose stop``` within your docker folder. This will force-stop both containers.
 ### Starting
 - use ```docker-compose start``` to restart the container. 
 
@@ -63,7 +63,7 @@ Important notice: ```docker-compose rm``` does not remove the images completely.
 As mentioned in the preamble, we had serveral problems to face. In the following paragraphe, there will be a detailed explanation about problems we had to face and how we solved them. The paragraphe is seperated into several parts, one will be the CoCoME dockerfile, another will be the Webshop dockerfile and the docker-compose file. Finally a few information concernig the scripts we are using to deploy start the glassfish servers with CoCoME.
 Notice: The part with the CoCoME dockerfile is quite similar to the single container version which is part of the repo [cocome-cloud-jee-docker](https://github.com/cocome-community-case-study/cocome-cloud-jee-docker).
 
-### Dockerfile CoCoME
+## Dockerfile CoCoME
 
 - starting with image ubuntu:16.04
 	-> using the ubuntu image allows to use the Advanved Packaging Tool (apt) from ubuntu for installing required programs, such as git and maven
@@ -86,24 +86,24 @@ Notice: The part with the CoCoME dockerfile is quite similar to the single conta
 - using dos2unix
     -> sometimes git changes the linux line-ending format to windows format or even worse: the user opens the startdomain.sh with notePad that causes this change too. Once changed, the execution will fail. This tool always changes it to linux style.
     
-### Dockerfile Webshop
+## Dockerfile Webshop
 
 - this dockerfile is pretty similar to the CoCoME dockerfile. Therefor, there won't be a fully analysis as you can compare both of them.
 
 
-### Docker-compose file
+## Docker-compose file
 
 A docker-compose file is a text file in .yaml-format. To check the file for valid yaml syntax, we used [yamllint](http://yamllint.com/). It is highly recommended to check the dockerfile with this tool, as a wrong placed TAB or whitespace can destroy the whole file.
 For this project we used docker-compose file syntax version 2, as the documentation was better than the doc for version one. There is no other reason for this decision, so the syntax version could easily be changed to another version.
 
--services: So far, thereare two services; CoCoME and the wenshop. Both have the same build context, as we use self-written dockerfiles for the setup.
--ports: this opens the port to the outside. As you can see above, we access CoCoME trough port 8080 and the webshop through 8580. Besides, docker uses the same ports inside the containers so that we need to forward the to thelocal machine the docker is running on. In words: 8080:8080 means "port 8080 inside the container shall be accessible through port 8080 on the local machine".
+- services: So far, thereare two services; CoCoME and the wenshop. Both have the same build context, as we use self-written dockerfiles for the setup.
+- ports: this opens the port to the outside. As you can see above, we access CoCoME trough port 8080 and the webshop through 8580. Besides, docker uses the same ports inside the containers so that we need to forward the to thelocal machine the docker is running on. In words: 8080:8080 means "port 8080 inside the container shall be accessible through port 8080 on the local machine".
 - links: this is the main task in this docker-compose file. It automatically links the webshop container with the CoCoME container (single direction only). Therefor, to access the CoCoME container from inside the Webshop, we only need to ping ```cocome:PORTNUMBER```. There is no need of any complicated TCP routing, changing iptables and so one. Notice: the name we used as service-name is the same we have to use as host name (here: cocome)
 
 
 
 
-### startdomainCocome.sh
+## startdomainCocome.sh
 - if statement at the beginning
  -> When we  restart (stop and start) a docker container, we only need to start the domains again (without create and set passwords etc.). We used this workaround, as docker has no command for docker start with certain script. *docker start* automatically runs the startdomain.sh within the CMD command but this will start the whole process of password setting again. So, at the beginnig of startdomain.sh we ask the container wether it already created the passwordfile (this implicates that the container was already started at least one time) or not.
 
@@ -115,12 +115,17 @@ For this project we used docker-compose file syntax version 2, as the documentat
 - last command in script is executed in --verbose mode
     -> Docker stops if no application is running foreground. As glassfish runs in background, the container would stop if the script is executed completely. So we decided to choose this workaround: the last domain is restarted in verbose mode, so glassfish enters the console and pretends to run foreground. Sadly there's one bad side effect: No command can be executed beyond this point. Maybe there's another solution which we did not find so far.
 
--netcat -l command at the end: this inconspicious line solves on of the biggest problem that accompanies CoCoME and docker, or docker in general. Docker provides some commands concerning the start order of the containers e.g.: one container does not start until the other is up and running. But, a running container does not imply a working container. For example: As soon as the CoCoME container is up, the start script gets executed. According to docker, the container is up and running now but inside, the script has still a bunch of work to do (starting, deploying, restarting...). There is no possibillity given by docker to change a running container in a "ready state". Therefore we had to find a workaround that solves this problem. We choosed to use a tool called netcat, which is a powerful tool for TCP requests. Right before the web-domain restarts we open a random port (we choosed 8424) and put netcat in listening mode. The script now gets stuck in this line until a tcp query will reach port 8424. This query is coming from the webshop thats not going to start until it gets a response from this port. In other words: the webshop queries this port every 5 seconds and doesn't get an answer until the CoCoME-script reaches the line where netcat gets started. By this time the backend is running and the container ready for any incoming connection.
-    
-### restartCocome.sh
--this script gets executed only if the glassfish setup (password, enabling secure-admin etc) was executed before. In other words, this script is used when we restart a stopped container. 
+###Netcat  workaround
+- netcat -l command at the end: this inconspicious line solves on of the biggest problem that accompanies CoCoME and docker, or docker in general. Docker provides some commands concerning the start order of the containers e.g.: one container does not start until the other is up and running. But, a running container does not imply a working container. For example: As soon as the CoCoME container is up, the start script gets executed. According to docker, the container is up and running now but inside, the script has still a bunch of work to do (starting, deploying, restarting...). There is no possibillity given by docker to change a running container in a "ready state". Therefore we had to find a workaround that solves this problem. We choosed to use a tool called netcat, which is a powerful tool for TCP requests. Right before the web-domain restarts we open a random port (we choosed 8424) and put netcat in listening mode. The script now gets stuck in this line until a tcp query will reach port 8424. This query is coming from the webshop thats not going to start until it gets a response from this port. In other words: the webshop queries this port every 5 seconds and doesn't get an answer until the CoCoME-script reaches the line where netcat gets started. By this time the backend is running and the container ready for any incoming connection.
+####Problem: 
+- There is an open window of 5 seconds which can cause serious trouble. 
+- First: We open a random port. BUT: Due to docker, it is only possible to access the CoCoME container (and as a consequence this port) from inside the Webshop Container (docker link!)
+- Second: The CoCoME container closes this port as soon as a query is coming in. If this query is not coming from the Webshop Container, it gets stuck in a endless loop waiting for this port to open.
+---> So far, we did not find a better solutiion. Maybe, docker will introduce a command to set container in a ready mode, which can be called up by another container.
+## restartCocome.sh
+- this script gets executed only if the glassfish setup (password, enabling secure-admin etc) was executed before. In other words, this script is used when we restart a stopped container. 
 
-### startdomainWebshop.sh
+## startdomainWebshop.sh
 The main task of this script is to start the Webshop, wait for the CoCoME container to be ready and restart the servers.
 - Glassfish adjustements are similar to the CoCoME script.
 - the important part is the while loop at the end: After the glassfish adaption and webshop deploying is finished, the container needs to wait for CoCoME to be ready. As mentioned in the previous paragraphe, the webshop queries port 8424 of the CoCoME container with the netcat tool. As soon as is gets a connection, CoCoME is ready and the webshop gets restarted. This restart causes a new registration attempt of the webshop, which , by now, sould be successful. 

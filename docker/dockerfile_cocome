@@ -59,7 +59,7 @@ ADD web8048.war   \
          
 
 RUN rm usr/src/*.md  && \
-	rm -r usr/src/docker && \
+	rm -r usr/src/docker
 	
 
 # 8048 (administration), 8080 (HTTP listener), 8181 (HTTPS listener)
